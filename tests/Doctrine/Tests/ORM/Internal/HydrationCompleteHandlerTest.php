@@ -25,7 +25,7 @@ use Doctrine\ORM\Event\ListenersInvoker;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Internal\HydrationCompleteHandler;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use stdClass;
 
 /**
@@ -33,7 +33,7 @@ use stdClass;
  *
  * @covers \Doctrine\ORM\Internal\HydrationCompleteHandler
  */
-class HydrationCompleteHandlerTest extends PHPUnit_Framework_TestCase
+class HydrationCompleteHandlerTest extends TestCase
 {
     /**
      * @var \Doctrine\ORM\Event\ListenersInvoker|\PHPUnit_Framework_MockObject_MockObject
@@ -61,7 +61,7 @@ class HydrationCompleteHandlerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider testGetValidListenerInvocationFlags
+     * @dataProvider invocationFlagProvider
      *
      * @param int $listenersFlag
      */
@@ -99,7 +99,7 @@ class HydrationCompleteHandlerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider testGetValidListenerInvocationFlags
+     * @dataProvider invocationFlagProvider
      *
      * @param int $listenersFlag
      */
@@ -125,7 +125,7 @@ class HydrationCompleteHandlerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider testGetValidListenerInvocationFlags
+     * @dataProvider invocationFlagProvider
      *
      * @param int $listenersFlag
      */
@@ -187,7 +187,7 @@ class HydrationCompleteHandlerTest extends PHPUnit_Framework_TestCase
         $this->handler->hydrationComplete();
     }
 
-    public function testGetValidListenerInvocationFlags()
+    public function invocationFlagProvider()
     {
         return [
             [ListenersInvoker::INVOKE_LISTENERS],

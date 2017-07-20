@@ -20,6 +20,7 @@
 namespace Doctrine\ORM;
 
 use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\Query\Exec\AbstractSqlExecutor;
 use Doctrine\ORM\Query\Parser;
 use Doctrine\ORM\Query\ParserResult;
 use Doctrine\ORM\Query\QueryException;
@@ -202,7 +203,7 @@ final class Query extends AbstractQuery
      */
     public function getSQL()
     {
-        return $this->_parse()->getSQLExecutor()->getSQLStatements();
+        return $this->_parse()->getSqlExecutor()->getSqlStatements();
     }
 
     /**
@@ -322,7 +323,34 @@ final class Query extends AbstractQuery
 
         list($sqlParams, $types) = $this->processParameterMappings($paramMappings);
 
+        $this->evictResultSetCache(
+            $executor,
+            $sqlParams,
+            $types,
+            $this->_em->getConnection()->getParams()
+        );
+
         return $executor->execute($this->_em->getConnection(), $sqlParams, $types);
+    }
+
+    private function evictResultSetCache(
+        AbstractSqlExecutor $executor,
+        array $sqlParams,
+        array $types,
+        array $connectionParams
+    ) {
+        if (null === $this->_queryCacheProfile || ! $this->getExpireResultCache()) {
+            return;
+        }
+
+        $cacheDriver = $this->_queryCacheProfile->getResultCacheDriver();
+        $statements  = (array) $executor->getSqlStatements(); // Type casted since it can either be a string or an array
+
+        foreach ($statements as $statement) {
+            $cacheKeys = $this->_queryCacheProfile->generateCacheKeys($statement, $sqlParams, $types, $connectionParams);
+
+            $cacheDriver->delete(reset($cacheKeys));
+        }
     }
 
     /**
@@ -709,7 +737,7 @@ final class Query extends AbstractQuery
             ->getName();
 
         return md5(
-            $this->getDql() . serialize($this->_hints) .
+            $this->getDQL() . serialize($this->_hints) .
             '&platform=' . $platform .
             ($this->_em->hasFilters() ? $this->_em->getFilters()->getHash() : '') .
             '&firstResult=' . $this->_firstResult . '&maxResult=' . $this->_maxResults .
